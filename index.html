@@ -159,10 +159,10 @@ section{scroll-margin-top:84px}
 .brush svg{width:100%;height:auto;display:block;stroke:#FFFFFF;fill:none}
 .band.light .brush svg{stroke:#0A1A2F}
 .band.light .brush{opacity:.13}
-.brush-a{left:1.5%;top:11%;width:clamp(84px,9.5vw,148px);opacity:.17}
-.brush-b{right:2.5%;top:15%;width:clamp(62px,7vw,108px);opacity:.13}
-.brush-c{left:7%;bottom:13%;width:clamp(48px,5.5vw,78px);opacity:.11}
-@media (max-width:900px){.brush{display:none}}
+.brush-a{left:8px;top:9%;width:clamp(56px,calc(50vw - 540px),112px);opacity:.17}
+.brush-b{right:8px;top:14%;width:clamp(46px,calc(40vw - 420px),92px);opacity:.13}
+.brush-c{left:14px;bottom:13%;width:clamp(40px,calc(30vw - 320px),72px);opacity:.11}
+@media (max-width:1179px){.brush{display:none}} /* margins too narrow for decoration */
 .band > .wrap{position:relative;z-index:1}
 
 /* enso — white brush circle behind the closing heading */
@@ -280,7 +280,7 @@ h1 em{font-style:normal;color:var(--accent)}
 }
 .duties{list-style:none;padding:0;margin:16px 0 0;display:grid;gap:11px}
 .duties li{position:relative;padding-left:20px;color:var(--paper-dim);font-size:15.2px;line-height:1.6}
-.duties li::before{content:"";position:absolute;left:1px;top:10px;width:7px;height:1.5px;background:var(--accent)}
+.duties li::before{content:"";position:absolute;left:1px;top:10px;width:7px;height:2px;background:var(--accent)}
 .duties b{color:var(--paper);font-weight:600}
 .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px}
 .chip{
@@ -323,7 +323,8 @@ h1 em{font-style:normal;color:var(--accent)}
 .card-a:hover{text-decoration:underline;text-underline-offset:3px}
 
 /* ── skills ── */
-.skills{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:15px;margin-top:34px}
+.skills{display:grid;grid-template-columns:repeat(2,1fr);gap:15px;margin-top:34px}
+@media (max-width:700px){.skills{grid-template-columns:1fr}}
 .skill{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r);padding:22px 20px}
 .skill h3{font-size:15px;color:var(--accent);font-family:var(--f-mono);font-weight:500;letter-spacing:.11em;text-transform:uppercase}
 .skill ul{list-style:none;padding:0;margin:15px 0 0;display:flex;flex-wrap:wrap;gap:7px}
@@ -352,6 +353,15 @@ h1 em{font-style:normal;color:var(--accent)}
 .row .yr{font-family:var(--f-mono);font-size:13px;color:var(--paper-mute);text-align:right;font-variant-numeric:tabular-nums}
 .scroller{overflow-x:auto}
 .scroller .rows{min-width:560px}
+@media (max-width:640px){
+  .scroller .rows{min-width:0}
+  .row.head{display:none}
+  .row{grid-template-columns:1fr auto;gap:4px 14px;padding:15px 16px;align-items:start}
+  .row strong{grid-column:1;grid-row:1}
+  .row .yr{grid-column:2;grid-row:1}
+  .row > span:not(.fig):not(.yr){grid-column:1 / -1;grid-row:2}
+  .row .fig{grid-column:1 / -1;grid-row:3;margin-top:2px}
+}
 
 /* credentials */
 .cred-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:32px}
@@ -405,7 +415,8 @@ details.more .list{margin-top:14px}
 }
 .reach a:hover{border-color:var(--accent);transform:translateY(-3px)}
 .reach .k{font-family:var(--f-mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--paper-mute);margin-bottom:7px}
-.reach .v{display:block;font-size:14.6px;color:var(--paper);word-break:break-word}
+.reach .v{display:block;font-size:14.6px;color:var(--paper);overflow-wrap:anywhere}
+@media (min-width:1000px){.reach{grid-template-columns:1.45fr 1fr 1fr 1fr}}
 
 footer{border-top:1px solid var(--line-soft);padding-block:26px;margin-top:0}
 .foot{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;
@@ -747,7 +758,7 @@ body.js [data-rv].in{opacity:1;transform:none}
       <div class="skill" data-rv>
         <h3><svg class="ic ic-sm" aria-hidden="true"><use href="#i-chart"/></svg>Analysis &amp; Modelling</h3>
         <ul><li>Python</li><li>Statistics</li><li>Clustering</li><li>Classification</li><li>Regression</li><li>Hypothesis Testing</li></ul>
-        <p class="where">Applied across the segmentation, classification and regression projects below.</p>
+        <p class="where">Applied in the segmentation and classification projects above.</p>
       </div>
       <div class="skill" data-rv>
         <h3><svg class="ic ic-sm" aria-hidden="true"><use href="#i-dash"/></svg>BI &amp; Visualisation</h3>
@@ -757,7 +768,7 @@ body.js [data-rv].in{opacity:1;transform:none}
       <div class="skill" data-rv>
         <h3><svg class="ic ic-sm" aria-hidden="true"><use href="#i-server"/></svg>Enterprise Systems</h3>
         <ul><li>SAP Basis</li><li>S/4HANA Conversion</li><li>Control-M</li><li>ServiceNow</li><li>Linux</li><li>Odoo ERP</li></ul>
-        <p class="where">SAP, Control-M, ServiceNow and Linux run daily across two years in a live 24/7 production environment. Odoo from MBA coursework.</p>
+        <p class="where">SAP, Control-M, ServiceNow and Linux used daily for two years in a live 24/7 production environment. Odoo from MBA coursework.</p>
       </div>
       <div class="skill" data-rv>
         <h3><svg class="ic ic-sm" aria-hidden="true"><use href="#i-team"/></svg>Operating &amp; Leading</h3>
