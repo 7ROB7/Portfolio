@@ -316,6 +316,11 @@ h1 em{font-style:normal;color:var(--accent)}
   font-style:normal;font-family:var(--f-mono);font-size:10px;letter-spacing:.07em;
   color:var(--paper-mute);border:1px solid var(--line-soft);padding:4px 8px;border-radius:5px;
 }
+.card-a{
+  align-self:flex-start;display:inline-flex;align-items:center;gap:7px;margin-top:2px;
+  font-family:var(--f-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+}
+.card-a:hover{text-decoration:underline;text-underline-offset:3px}
 
 /* ── skills ── */
 .skills{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:15px;margin-top:34px}
@@ -679,6 +684,14 @@ body.js [data-rv].in{opacity:1;transform:none}
     </div>
 
     <div class="grid" id="pgrid">
+      <article class="card" data-t="sys" data-rv>
+        <div class="card-k"><span>Integration</span><span>Personal</span></div>
+        <h3>CRM-to-Onboarding Integration</h3>
+        <p>A webhook service that turns a closed-won CRM deal into a ready onboarding project in Odoo, with signed requests, duplicate protection, retries and a SQL sync check. Built with AI-assisted development.</p>
+        <div class="stack"><i>Python</i><i>FastAPI</i><i>REST &amp; Webhooks</i><i>Odoo API</i><i>SQL</i><i>Postman</i></div>
+        <a class="card-a" href="https://github.com/7ROB7/portfolio/tree/main/projects/crm-to-onboarding-integration" target="_blank" rel="noopener"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-github"/></svg>View code</a>
+      </article>
+
       <article class="card" data-t="ml" data-rv>
         <div class="card-k"><span>Clustering</span><span>Business Analytics</span></div>
         <h3>Digital Ad Audience Segmentation</h3>

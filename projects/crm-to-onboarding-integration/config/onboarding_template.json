@@ -1,0 +1,53 @@
+{
+  "name": "Standard SaaS Onboarding",
+  "kickoff_after_business_days": 3,
+  "phases": [
+    {
+      "name": "Kickoff",
+      "tasks": [
+        {"name": "Internal handover from Sales to Implementation", "due_day": 0, "plans": ["Starter", "Growth", "Enterprise"]},
+        {"name": "Kickoff call with customer", "due_day": 1, "plans": ["Starter", "Growth", "Enterprise"]},
+        {"name": "Confirm stakeholders and RACI", "due_day": 2, "plans": ["Growth", "Enterprise"]}
+      ]
+    },
+    {
+      "name": "Discovery",
+      "tasks": [
+        {"name": "Requirements workshop", "due_day": 4, "plans": ["Starter", "Growth", "Enterprise"]},
+        {"name": "Document current-state workflows", "due_day": 6, "plans": ["Growth", "Enterprise"]},
+        {"name": "Solution design sign-off", "due_day": 8, "plans": ["Growth", "Enterprise"]}
+      ]
+    },
+    {
+      "name": "Configuration",
+      "tasks": [
+        {"name": "Configure workspace and templates", "due_day": 7, "plans": ["Starter", "Growth", "Enterprise"]},
+        {"name": "Set up user roles and SSO (SAML)", "due_day": 10, "plans": ["Enterprise"]},
+        {"name": "Data migration dry run and validation", "due_day": 12, "plans": ["Growth", "Enterprise"]}
+      ]
+    },
+    {
+      "name": "Integrations",
+      "tasks": [
+        {"name": "CRM integration (deal to project)", "due_day": 14, "plans": ["Growth", "Enterprise"]},
+        {"name": "HRMS / Finance (e.g. NetSuite) integration", "due_day": 17, "plans": ["Enterprise"]},
+        {"name": "Integration UAT and error-handling review", "due_day": 19, "plans": ["Enterprise"]}
+      ]
+    },
+    {
+      "name": "UAT & Training",
+      "tasks": [
+        {"name": "User acceptance testing", "due_day": 11, "plans": ["Starter", "Growth", "Enterprise"]},
+        {"name": "Admin and end-user training", "due_day": 13, "plans": ["Starter", "Growth", "Enterprise"]}
+      ]
+    },
+    {
+      "name": "Go-Live",
+      "tasks": [
+        {"name": "Go-live cutover", "due_day": 15, "plans": ["Starter", "Growth", "Enterprise"]},
+        {"name": "Hypercare (2 weeks)", "due_day": 25, "plans": ["Growth", "Enterprise"]},
+        {"name": "Handover to Customer Success", "due_day": 27, "plans": ["Starter", "Growth", "Enterprise"]}
+      ]
+    }
+  ]
+}

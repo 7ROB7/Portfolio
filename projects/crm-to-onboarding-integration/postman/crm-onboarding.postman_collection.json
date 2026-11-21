@@ -1,0 +1,335 @@
+{
+  "info": {
+    "name": "CRM -> Onboarding Integration",
+    "description": "Run top to bottom (Runner works too). Each POST is HMAC-signed by a pre-request script.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Health check",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
+        },
+        "description": "Is the service running, and in which Odoo mode?"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('service is up', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Closed-won deal -> creates project",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/webhooks/crm/deal-closed",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "webhooks",
+            "crm",
+            "deal-closed"
+          ]
+        },
+        "description": "Happy path. Generates a fresh event ID and deal, signs the body, sends it.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"event_id\": \"{{eventId}}\",\n  \"event_type\": \"deal.closed_won\",\n  \"occurred_at\": \"2026-11-20T09:30:00Z\",\n  \"source\": \"postman\",\n  \"deal\": {\n    \"deal_id\": \"PM-{{dealSuffix}}\",\n    \"deal_name\": \"Acme Corp - Enterprise\",\n    \"company_name\": \"Acme Corp {{dealSuffix}}\",\n    \"contact_name\": \"Priya Raman\",\n    \"contact_email\": \"priya.raman@acme.example\",\n    \"amount\": 48000,\n    \"currency\": \"USD\",\n    \"close_date\": \"2026-11-20\",\n    \"plan\": \"Enterprise\",\n    \"owner\": \"you@vendor.example\"\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('eventId', 'evt-' + pm.variables.replaceIn('{{$guid}}'));",
+              "pm.collectionVariables.set('dealSuffix', Math.floor(Math.random()*100000).toString());",
+              "// Signs the request exactly like the CRM would: HMAC-SHA256 over '<timestamp>.<raw body>'",
+              "const ts = Math.floor(Date.now() / 1000).toString();",
+              "const body = pm.variables.replaceIn(pm.request.body.raw);",
+              "const secret = pm.collectionVariables.get('webhookSecret');",
+              "const sig = 'sha256=' + CryptoJS.HmacSHA256(ts + '.' + body, secret).toString(CryptoJS.enc.Hex);",
+              "pm.request.headers.upsert({key: 'X-Timestamp', value: ts});",
+              "pm.request.headers.upsert({key: 'X-Signature', value: sig});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('201 Created', () => pm.response.to.have.status(201));",
+              "pm.test('all tasks created', () => { const r = pm.response.json(); pm.expect(r.tasks_created).to.eql(r.tasks_expected); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Same event again -> duplicate (idempotency)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/webhooks/crm/deal-closed",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "webhooks",
+            "crm",
+            "deal-closed"
+          ]
+        },
+        "description": "Re-sends the exact event from step 2. Webhook senders DO deliver twice; this must not create a second project.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"event_id\": \"{{eventId}}\",\n  \"event_type\": \"deal.closed_won\",\n  \"occurred_at\": \"2026-11-20T09:30:00Z\",\n  \"source\": \"postman\",\n  \"deal\": {\n    \"deal_id\": \"PM-{{dealSuffix}}\",\n    \"deal_name\": \"Acme Corp - Enterprise\",\n    \"company_name\": \"Acme Corp {{dealSuffix}}\",\n    \"contact_name\": \"Priya Raman\",\n    \"contact_email\": \"priya.raman@acme.example\",\n    \"amount\": 48000,\n    \"currency\": \"USD\",\n    \"close_date\": \"2026-11-20\",\n    \"plan\": \"Enterprise\",\n    \"owner\": \"you@vendor.example\"\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Signs the request exactly like the CRM would: HMAC-SHA256 over '<timestamp>.<raw body>'",
+              "const ts = Math.floor(Date.now() / 1000).toString();",
+              "const body = pm.variables.replaceIn(pm.request.body.raw);",
+              "const secret = pm.collectionVariables.get('webhookSecret');",
+              "const sig = 'sha256=' + CryptoJS.HmacSHA256(ts + '.' + body, secret).toString(CryptoJS.enc.Hex);",
+              "pm.request.headers.upsert({key: 'X-Timestamp', value: ts});",
+              "pm.request.headers.upsert({key: 'X-Signature', value: sig});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 duplicate, nothing created', () => { pm.response.to.have.status(200); pm.expect(pm.response.json().status).to.eql('duplicate'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Bad signature -> 401",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/webhooks/crm/deal-closed",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "webhooks",
+            "crm",
+            "deal-closed"
+          ]
+        },
+        "description": "Someone who doesn't know the secret cannot create projects.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"event_id\": \"{{eventId}}\",\n  \"event_type\": \"deal.closed_won\",\n  \"occurred_at\": \"2026-11-20T09:30:00Z\",\n  \"source\": \"postman\",\n  \"deal\": {\n    \"deal_id\": \"PM-{{dealSuffix}}\",\n    \"deal_name\": \"Acme Corp - Enterprise\",\n    \"company_name\": \"Acme Corp {{dealSuffix}}\",\n    \"contact_name\": \"Priya Raman\",\n    \"contact_email\": \"priya.raman@acme.example\",\n    \"amount\": 48000,\n    \"currency\": \"USD\",\n    \"close_date\": \"2026-11-20\",\n    \"plan\": \"Enterprise\",\n    \"owner\": \"you@vendor.example\"\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Signs the request exactly like the CRM would: HMAC-SHA256 over '<timestamp>.<raw body>'",
+              "const ts = Math.floor(Date.now() / 1000).toString();",
+              "const body = pm.variables.replaceIn(pm.request.body.raw);",
+              "const secret = pm.collectionVariables.get('webhookSecret');",
+              "const sig = 'sha256=' + CryptoJS.HmacSHA256(ts + '.' + body, secret).toString(CryptoJS.enc.Hex);",
+              "pm.request.headers.upsert({key: 'X-Timestamp', value: ts});",
+              "pm.request.headers.upsert({key: 'X-Signature', value: sig});",
+              "pm.request.headers.upsert({key: 'X-Signature', value: 'sha256=forged'});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('401 Unauthorized', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Invalid data -> 422 + dead-letter",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/webhooks/crm/deal-closed",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "webhooks",
+            "crm",
+            "deal-closed"
+          ]
+        },
+        "description": "Bad CRM data is rejected with field-level reasons and logged (see GET /events).",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"event_id\": \"{{eventId}}\",\n  \"event_type\": \"deal.closed_won\",\n  \"occurred_at\": \"2026-11-20T09:30:00Z\",\n  \"source\": \"postman\",\n  \"deal\": {\n    \"deal_id\": \"PM-{{dealSuffix}}\",\n    \"deal_name\": \"Acme Corp - Enterprise\",\n    \"company_name\": \"Acme Corp {{dealSuffix}}\",\n    \"contact_name\": \"Priya Raman\",\n    \"contact_email\": \"not-an-email\",\n    \"amount\": 48000,\n    \"currency\": \"USD\",\n    \"close_date\": \"2026-11-20\",\n    \"plan\": \"Platinum\",\n    \"owner\": \"you@vendor.example\"\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('eventId', 'evt-' + pm.variables.replaceIn('{{$guid}}'));",
+              "pm.collectionVariables.set('dealSuffix', Math.floor(Math.random()*100000).toString());",
+              "// Signs the request exactly like the CRM would: HMAC-SHA256 over '<timestamp>.<raw body>'",
+              "const ts = Math.floor(Date.now() / 1000).toString();",
+              "const body = pm.variables.replaceIn(pm.request.body.raw);",
+              "const secret = pm.collectionVariables.get('webhookSecret');",
+              "const sig = 'sha256=' + CryptoJS.HmacSHA256(ts + '.' + body, secret).toString(CryptoJS.enc.Hex);",
+              "pm.request.headers.upsert({key: 'X-Timestamp', value: ts});",
+              "pm.request.headers.upsert({key: 'X-Signature', value: sig});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('422 with field errors', () => { pm.response.to.have.status(422); pm.expect(pm.response.json().errors.length).to.be.above(0); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Event log / dead-letter list",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/events",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "events"
+          ]
+        },
+        "description": "Audit trail of everything received, including rejected and failed events."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "webhookSecret",
+      "value": "change-me-local-dev-secret"
+    },
+    {
+      "key": "eventId",
+      "value": ""
+    },
+    {
+      "key": "dealSuffix",
+      "value": ""
+    }
+  ]
+}
